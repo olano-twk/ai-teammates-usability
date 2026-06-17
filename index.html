@@ -3398,7 +3398,7 @@ body.ai-task-split .ai-drawer-overlay { background: transparent; }
                 <p>Run a job, check on a project, or surface insights — your AI teammates handle the work.</p>
 
                 <div class="askai-hero-input-wrap">
-                  <textarea class="askai-hero-input" id="askAiInput" placeholder="Ask AI, @mention a teammate or / for jobs" rows="1"
+                  <textarea class="askai-hero-input" id="askAiInput" placeholder="Ask a question or take an action…" rows="1"
                     onkeydown="activeChat='page'; aiDrawerKey(event, this)" oninput="activeChat='page'; aiAutoResize(this); _composerDetect(this, true)"></textarea>
                   <button class="askai-hero-send" id="askAiSendBtn" onclick="activeChat='page'; aiSend()" disabled>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
@@ -3442,7 +3442,7 @@ body.ai-task-split .ai-drawer-overlay { background: transparent; }
             </div>
             <div class="askai-inputbar" id="askAiInputBar">
               <div class="askai-inputbar-wrap">
-                <textarea class="askai-inputbar-input" id="askAiInputBottom" placeholder="Ask AI, @mention a teammate or / for jobs" rows="1"
+                <textarea class="askai-inputbar-input" id="askAiInputBottom" placeholder="Ask a question or take an action…" rows="1"
                   onkeydown="activeChat='page'; aiDrawerKey(event, this)" oninput="activeChat='page'; aiAutoResize(this); _composerDetect(this, true)"></textarea>
                 <button class="askai-hero-send" id="askAiSendBtnBottom" onclick="activeChat='page'; aiSend()" disabled>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
@@ -3934,7 +3934,7 @@ body.ai-task-split .ai-drawer-overlay { background: transparent; }
 
   <div class="ai-drawer-input-area">
     <div class="ai-drawer-input-wrap">
-      <textarea class="ai-drawer-input" id="aiDrawerInput" placeholder="Ask AI, @mention a teammate or / for jobs" rows="1"
+      <textarea class="ai-drawer-input" id="aiDrawerInput" placeholder="Ask a question or take an action…" rows="1"
         onkeydown="activeChat='drawer'; aiDrawerKey(event, this)" oninput="activeChat='drawer'; aiAutoResize(this); _composerDetect(this, true)"></textarea>
       <button class="ai-drawer-send-btn" id="aiSendBtn" onclick="activeChat='drawer'; aiSend()" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -4880,7 +4880,7 @@ function setProjectContext(projectName) {
             ${it.q}
           </button>`).join('');
     }
-    if (input) input.placeholder = 'Ask about this project…';
+    if (input) input.placeholder = 'Ask a question or take an action…';
   } else {
     _drawerUpdateScope = null;
     banner.style.display = 'none';
@@ -4892,7 +4892,7 @@ function setProjectContext(projectName) {
       suggestions.classList.remove('scoped');
       suggestions.innerHTML = _defaultDrawerSuggestionsHTML;
     }
-    if (input) input.placeholder = 'Ask AI anything…';
+    if (input) input.placeholder = 'Ask a question or take an action…';
   }
 }
 
@@ -4939,7 +4939,7 @@ function setUpdateContext(u) {
         </button>`;
     }
   }
-  if (input) input.placeholder = 'Ask about this update…';
+  if (input) input.placeholder = 'Ask a question or take an action…';
 }
 
 /* Task-tailored suggested prompts shown under "FOR THIS TASK" */
@@ -4988,7 +4988,7 @@ function setTaskContext(task) {
             ${it.q}
           </button>`).join('');
     }
-    if (input) input.placeholder = 'Ask about this task…';
+    if (input) input.placeholder = 'Ask a question or take an action…';
   } else {
     setProjectContext(null);
   }
@@ -7298,8 +7298,9 @@ function selectUpdate(id) {
 renderTeammates();
 renderFeed();
 selectUpdate(1);
-// Start the prototype on Scout's Updates tab
+// Start the prototype on Scout's Updates tab, Standup recap selected
 openTeammate(1);
+selectUpdate(103);
 switchTab('updates');
 
 /* ── AI Chat Drawer ─────────────────────────────────────────────── */
