@@ -2183,15 +2183,16 @@ body {
  * ───────────────────────────────────────────────────────────────── */
 .ai-drawer-overlay {
   position: fixed; inset: 0;
-  background: rgba(11,15,31,0.18);
+  background: transparent;
   z-index: 100;
   opacity: 0; pointer-events: none;
   transition: opacity 0.22s ease;
 }
-.ai-drawer-overlay.open { opacity: 1; pointer-events: all; }
+/* Non-modal drawer: no dimming and the page behind stays interactive */
+.ai-drawer-overlay.open { opacity: 1; pointer-events: none; }
 
 .ai-drawer {
-  position: fixed; top: 0; right: 0; bottom: 0;
+  position: fixed; top: 40px; right: 0; bottom: 0;
   width: 420px;
   background: var(--palette-white);
   box-shadow: none;
