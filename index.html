@@ -7340,9 +7340,20 @@ function toggleAiDrawer() {
   btn.classList.toggle('drawer-open', isOpen);
   if (isOpen) {
     activeChat = 'drawer';
-    // If opened from within a project, scope the drawer to that project
+    // If an update's detail (e.g. meeting notes) is open and visible, scope to
+    // it — same as clicking "Ask AI about this update". The detail-askai button
+    // is only rendered for a real update (not a new chat); offsetParent confirms
+    // it's actually on screen and not in a hidden panel (e.g. the project page).
+    const askBtn = document.querySelector('#detailPanel .detail-askai-btn');
+    const updateOpen = askBtn && askBtn.offsetParent !== null
+      && _currentUpdate && _currentUpdate.type !== 'open';
     const inProject = document.getElementById('projectPage')?.classList.contains('visible');
-    setProjectContext(inProject ? 'Acme Website Redesign' : null);
+    if (updateOpen) {
+      setUpdateContext(_currentUpdate);
+    } else {
+      // If opened from within a project, scope the drawer to that project
+      setProjectContext(inProject ? 'Acme Website Redesign' : null);
+    }
     setTimeout(() => document.getElementById('aiDrawerInput').focus(), 250);
   }
 }
