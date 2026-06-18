@@ -5991,6 +5991,13 @@ function addRecurringJobFromUpdate() {
    so a follow-up "yes" confirms creation instead of falling through to a recap. */
 let _pendingTaskCreation = null;
 
+/* Does the user's message ask to create task(s) from the update / action items? */
+function _isCreateTasksIntent(text) {
+  const q = (text || '').toLowerCase();
+  return /\b(create|make|add|turn|generate|set up)\b[^.?!]*\btasks?\b/.test(q)
+    || /\btasks?\b[^.?!]*\bfrom\b[^.?!]*(action items?|summary|meeting|notes?|update)/.test(q);
+}
+
 /* Does the user's message confirm the pending action? */
 function _isAffirmative(text) {
   const q = (text || '').toLowerCase().trim().replace(/[.!]+$/, '');
@@ -7497,7 +7504,11 @@ function aiSend() {
     setTimeout(() => {
       activeChat = surface;
       aiRemoveThinking(thinkingId);
-      if (_pendingTaskCreation && _isAffirmative(text)) {
+      if (_isCreateTasksIntent(text)) {
+        // Typed request to create tasks — respond exactly like the "Create tasks" button
+        const kind = _updateActionItems(u).length > 1 ? 'create_tasks' : 'create_task';
+        aiAppendMessage('ai', _actionFlowReply(kind, u));
+      } else if (_pendingTaskCreation && _isAffirmative(text)) {
         // Confirming the task-creation preview — report the tasks as created
         aiAppendMessage('ai', _tasksCreatedReply(_pendingTaskCreation));
         _pendingTaskCreation = null;
