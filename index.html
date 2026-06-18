@@ -4438,6 +4438,7 @@ const scoutUpdates = [
         <li>Mobile QA and content migration will run in parallel to recover schedule.</li>
         <li>Client review stays on Friday — no delay to be communicated at this stage.</li>
         <li>UAT start date moved to Wed 30 Apr (was Mon 28 Apr) to give buffer.</li>
+        <li>Next standup agreed for <strong>Thursday 24 April at 10:00am</strong> — to review content migration progress ahead of Friday's client review.</li>
       </ul>` }},
   { id:104, type:'week', title:'Your week is planned — 14 tasks scheduled across 5 projects', preview:'Focus time blocked Mon–Wed. 3 tasks need prioritisation before Thursday.', time:'09:00am',
     content:{ sender:'Scout', time:'09:00am',
@@ -5955,6 +5956,8 @@ function _updateJobInfo(u) {
 let _recurringNudgeShown = false;
 function _maybeSuggestRecurringJob(u) {
   if (_recurringNudgeShown) return;
+  // Skip the standup recap — it's a one-off meeting recap, not a recurring-job candidate.
+  if (u && u.id === 103) return;
   const job = _updateJobInfo(u);
   if (!job) return;
   _recurringNudgeShown = true;
@@ -6339,7 +6342,7 @@ function _meetingReply(q, u) {
     return `Happy to draft a follow-up. Would you like it addressed to all attendees, or sent to a specific person?`;
   }
   if (q.includes('next meeting') || q.includes('when is')) {
-    if (u.id === 103) return `Two key upcoming milestones from the standup:<br><br>• <strong>Friday client review (Apr 25)</strong> — confirmed, deck needed by Thursday noon.<br>• <strong>UAT kickoff (Wed 30 Apr)</strong> — moved from Mon 28 Apr to give buffer after content migration.`;
+    if (u.id === 103) return `The next meeting is the <strong>Website Redesign standup on Thursday 24 April at 10:00am</strong>. The team agreed to reconvene then to review content migration progress ahead of Friday's client review.`;
     if (u.id === 107) return `Next touchpoints after this call:<br><br>• <strong>Fri 18 Apr</strong> — First weekly written update to client + internal budget review meeting.<br>• Fortnightly client calls continue, now with weekly written updates added between them.`;
     return `The next meeting isn't specified in this recap. Check your calendar for the project's recurring calls.`;
   }
