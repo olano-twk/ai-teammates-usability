@@ -4903,6 +4903,7 @@ function setUpdateContext(u) {
   _drawerUpdateScope = u;
   _currentTask = null;
   _recurringNudgeShown = false;
+  _pendingTaskCreation = null;
   const banner = document.getElementById('aiDrawerContext');
   const suggestions = document.getElementById('aiSuggestions');
   const introTitle = document.getElementById('aiDrawerIntroTitle');
@@ -5985,19 +5986,40 @@ function addRecurringJobFromUpdate() {
   if (job) addRecurringJob(job.tm, job.type);
 }
 
+/* Pending task-creation state: set when the create-task(s) preview is shown,
+   so a follow-up "yes" confirms creation instead of falling through to a recap. */
+let _pendingTaskCreation = null;
+
+/* Does the user's message confirm the pending action? */
+function _isAffirmative(text) {
+  const q = (text || '').toLowerCase().trim().replace(/[.!]+$/, '');
+  return /^(yes|yep|yeah|yup|sure|ok|okay|do it|go ahead|please do|confirm|create them|create them all|create the tasks?|create|go for it|sounds good|please|yes please)\b/.test(q)
+    || /\b(create them|go ahead|please do|do it)\b/.test(q);
+}
+
+/* Confirmation message once the tasks have been "created" in the project. */
+function _tasksCreatedReply(pending) {
+  const { proj, count } = pending;
+  const n = count > 1 ? `${count} tasks` : 'the task';
+  return `✅ Done — I've created <strong>${n}</strong> in <strong>${proj}</strong>. You'll find ${count > 1 ? 'them' : 'it'} in the project's task list, ready to assign and schedule.`;
+}
+
 /* Teammate's response that walks the user through completing a contextual
    action via the matching Teamwork MCP write/read operation. */
 function _actionFlowReply(kind, u) {
-  const proj = (u.content && /Acme Website Redesign/i.test(u.content.body || '')) ? 'Acme Website Redesign'
+  const haystack = `${(u.content && u.content.body) || ''} ${u.title || ''}`;
+  const proj = /Website Redesign/i.test(haystack) ? 'Acme Website Redesign'
     : (u.title && u.title.split(/[:—]/)[0].trim()) || 'the project';
   switch (kind) {
     case 'create_task':
+      _pendingTaskCreation = { proj, count: 1 };
       return `Sure — here’s a task I can create in <strong>${proj}</strong>:<br><br>• <strong>Title:</strong> Follow up on the flagged item<br>• <strong>Assignee:</strong> unassigned<br>• <strong>Due:</strong> not set<br><br>Want me to adjust the title, assignee or due date — or shall I create it?`;
     case 'create_tasks': {
       const items = _updateActionItems(u);
       const shown = items.slice(0, 5);
       let list = shown.map((tItem, i) => `${i + 1}. ${tItem.length > 72 ? tItem.slice(0, 72) + '…' : tItem}`).join('<br>');
       if (items.length > shown.length) list += `<br>… and ${items.length - shown.length} more`;
+      _pendingTaskCreation = { proj, count: items.length };
       return `I found <strong>${items.length} action items</strong> in this update. I can create a task for each in <strong>${proj}</strong>:<br><br>${list}<br><br>Want me to create them? I can set assignees and due dates too.`;
     }
     case 'update_task':
@@ -7463,8 +7485,16 @@ function aiSend() {
     setTimeout(() => {
       activeChat = surface;
       aiRemoveThinking(thinkingId);
-      aiAppendMessage('ai', _generateChatResponse(text, u));
-      _maybeSuggestRecurringJob(u);
+      if (_pendingTaskCreation && _isAffirmative(text)) {
+        // Confirming the task-creation preview — report the tasks as created
+        aiAppendMessage('ai', _tasksCreatedReply(_pendingTaskCreation));
+        _pendingTaskCreation = null;
+      } else {
+        // Anything else means the preview is no longer the active context
+        _pendingTaskCreation = null;
+        aiAppendMessage('ai', _generateChatResponse(text, u));
+        _maybeSuggestRecurringJob(u);
+      }
       _aiIsProcessing = false;
     }, 1200);
 
