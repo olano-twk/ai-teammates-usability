@@ -2706,11 +2706,11 @@ body {
   position: fixed; top: 0; right: 0; height: 100vh; width: 720px; max-width: 96vw;
   background: var(--color-background-default);
   border-left: var(--border-width-1) solid var(--color-border-separator);
-  box-shadow: -16px 0 48px rgba(11,15,31,0.18);
+  box-shadow: none;
   display: flex; flex-direction: column; z-index: 241;
   transform: translateX(100%); transition: transform .26s cubic-bezier(.32,.72,.32,1);
 }
-.task-drawer.open { transform: translateX(0); }
+.task-drawer.open { transform: translateX(0); box-shadow: -16px 0 48px rgba(11,15,31,0.18); }
 /* Split mode: when the Ask AI drawer is open alongside the task drawer,
    shift the task drawer left so the AI drawer docks to its right. */
 body.ai-task-split .task-drawer.open {
