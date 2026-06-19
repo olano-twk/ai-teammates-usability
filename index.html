@@ -5998,6 +5998,13 @@ function _lastMeetingUpdate() {
     (scoutUpdates.find(u => u.type === 'meetings') || scoutUpdates.find(u => u.id === 103))) || null;
 }
 
+/* Does the user's message ask when the next meeting is? */
+function _isNextMeetingIntent(text) {
+  const q = (text || '').toLowerCase();
+  return /\bnext (meeting|standup|stand-up|call|sync|catch-?up)\b/.test(q)
+    || /\b(when|when's|what time|what day)\b[^?.!]*\bmeeting\b/.test(q);
+}
+
 /* Does the user's message ask to create task(s) from the update / action items? */
 function _isCreateTasksIntent(text) {
   const q = (text || '').toLowerCase();
@@ -7545,6 +7552,19 @@ function aiSend() {
         aiAppendMessage('ai', _tasksCreatedReply(_pendingTaskCreation));
         _pendingTaskCreation = null;
       }
+      _aiIsProcessing = false;
+    }, 1200);
+
+  } else if (_isNextMeetingIntent(text)) {
+    // "When's the next meeting" outside an update scope — answer from the most
+    // recent meeting summary, same as asking from that update directly.
+    _pendingTaskCreation = null;
+    const thinkingId = aiAppendThinking();
+    _aiIsProcessing = true;
+    setTimeout(() => {
+      activeChat = surface;
+      aiRemoveThinking(thinkingId);
+      aiAppendMessage('ai', _meetingReply('next meeting', _lastMeetingUpdate()));
       _aiIsProcessing = false;
     }, 1200);
 
