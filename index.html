@@ -5991,6 +5991,13 @@ function addRecurringJobFromUpdate() {
    so a follow-up "yes" confirms creation instead of falling through to a recap. */
 let _pendingTaskCreation = null;
 
+/* The most recent meeting summary — used when a create-tasks request isn't
+   scoped to a specific update ("create tasks from this meeting summary"). */
+function _lastMeetingUpdate() {
+  return (typeof scoutUpdates !== 'undefined' &&
+    (scoutUpdates.find(u => u.type === 'meetings') || scoutUpdates.find(u => u.id === 103))) || null;
+}
+
 /* Does the user's message ask to create task(s) from the update / action items? */
 function _isCreateTasksIntent(text) {
   const q = (text || '').toLowerCase();
@@ -7521,8 +7528,29 @@ function aiSend() {
       _aiIsProcessing = false;
     }, 1200);
 
+  } else if (_isCreateTasksIntent(text) || (_pendingTaskCreation && _isAffirmative(text))) {
+    // Create-tasks request (or its confirmation) outside an update scope — on the
+    // Ask AI page or an unscoped drawer. Assume the most recent meeting summary and
+    // run the same flow as the "Create tasks" button on the update itself.
+    const thinkingId = aiAppendThinking();
+    _aiIsProcessing = true;
+    setTimeout(() => {
+      activeChat = surface;
+      aiRemoveThinking(thinkingId);
+      if (_isCreateTasksIntent(text)) {
+        const u = _lastMeetingUpdate();
+        const kind = (u && _updateActionItems(u).length > 1) ? 'create_tasks' : 'create_task';
+        aiAppendMessage('ai', _actionFlowReply(kind, u));
+      } else {
+        aiAppendMessage('ai', _tasksCreatedReply(_pendingTaskCreation));
+        _pendingTaskCreation = null;
+      }
+      _aiIsProcessing = false;
+    }, 1200);
+
   } else if (intent) {
     // Teamwork AI delivers the full update, then offers to set up a recurring job
+    _pendingTaskCreation = null;
     const thinkingId = aiAppendThinking();
     _aiIsProcessing = true;
 
@@ -7537,6 +7565,7 @@ function aiSend() {
 
   } else if (_firstMentionedTeammate(text)) {
     // A teammate was @mentioned — Teamwork AI coordinates and answers
+    _pendingTaskCreation = null;
     const mentioned = _firstMentionedTeammate(text);
     const thinkingId = aiAppendThinking();
     _aiIsProcessing = true;
@@ -7548,6 +7577,8 @@ function aiSend() {
     }, 1300);
 
   } else {
+    // Anything else invalidates a pending task-creation preview
+    _pendingTaskCreation = null;
     // Project-scoped reply when the drawer is open in a project context
     const inProject = document.getElementById('projectPage')?.classList.contains('visible');
     const projReply = (surface === 'drawer' && inProject) ? _projectScopedReply(text) : null;
