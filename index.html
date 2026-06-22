@@ -6042,7 +6042,7 @@ function _actionFlowReply(kind, u) {
       let list = shown.map((tItem, i) => `${i + 1}. ${tItem.length > 72 ? tItem.slice(0, 72) + '…' : tItem}`).join('<br>');
       if (items.length > shown.length) list += `<br>… and ${items.length - shown.length} more`;
       _pendingTaskCreation = { proj, count: items.length };
-      return `I found <strong>${items.length} action items</strong> in this update. I can create a task for each in <strong>${proj}</strong>:<br><br>${list}<br><br>Want me to create them? I can set assignees and due dates too.`;
+      return `I found <strong>${items.length} action items</strong> in this update. I can create a task for each in <strong>${proj}</strong>:<br><br>${list}<br><br>Want me to create them?`;
     }
     case 'update_task':
       return `I’ll update that task for you. I can reassign it to <strong>you</strong>, change its status, or move the due date. Which would you like — or should I assign it to you and keep everything else as-is?`;
