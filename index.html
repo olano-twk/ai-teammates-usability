@@ -5922,11 +5922,12 @@ function askAiDoAction(kind, label) {
   if (intro) intro.style.display = 'none';
   document.getElementById('aiSuggestions').style.display = 'none';
   aiAppendMessage('user', label);
-  const thinkingId = aiAppendThinking();
+  const tm = u.content && u.content.sender;
+  const thinkingId = aiAppendThinking(tm);
   _aiIsProcessing = true;
   setTimeout(() => {
     aiRemoveThinking(thinkingId);
-    aiAppendMessage('ai', _actionFlowReply(kind, u));
+    aiAppendMessage('ai', _actionFlowReply(kind, u), { teammate: tm });
     _aiIsProcessing = false;
   }, 1100);
 }
@@ -5958,7 +5959,8 @@ function _maybeSuggestRecurringJob(u) {
      <button class="chat-job-cta" onclick="addRecurringJobFromUpdate()">
        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
        Add as recurring job
-     </button>`);
+     </button>`,
+    { teammate: u && u.content && u.content.sender });
 }
 
 /* Open the Add job dialog pre-filled (and scheduled) for a teammate + job type */
@@ -7503,7 +7505,8 @@ function aiSend() {
     // Scoped to a specific update — Teamwork AI answers from the update content
     // (takes priority over job-intent routing so questions stay about this update)
     const u = _drawerUpdateScope;
-    const thinkingId = aiAppendThinking();
+    const tm = u && u.content && u.content.sender;
+    const thinkingId = aiAppendThinking(tm);
     _aiIsProcessing = true;
     setTimeout(() => {
       activeChat = surface;
@@ -7511,15 +7514,15 @@ function aiSend() {
       if (_isCreateTasksIntent(text)) {
         // Typed request to create tasks — respond exactly like the "Create tasks" button
         const kind = _updateActionItems(u).length > 1 ? 'create_tasks' : 'create_task';
-        aiAppendMessage('ai', _actionFlowReply(kind, u));
+        aiAppendMessage('ai', _actionFlowReply(kind, u), { teammate: tm });
       } else if (_pendingTaskCreation && _isAffirmative(text)) {
         // Confirming the task-creation preview — report the tasks as created
-        aiAppendMessage('ai', _tasksCreatedReply(_pendingTaskCreation));
+        aiAppendMessage('ai', _tasksCreatedReply(_pendingTaskCreation), { teammate: tm });
         _pendingTaskCreation = null;
       } else {
         // Anything else means the preview is no longer the active context
         _pendingTaskCreation = null;
-        aiAppendMessage('ai', _generateChatResponse(text, u));
+        aiAppendMessage('ai', _generateChatResponse(text, u), { teammate: tm });
         _maybeSuggestRecurringJob(u);
       }
       _aiIsProcessing = false;
@@ -7529,7 +7532,8 @@ function aiSend() {
     // Create-tasks request (or its confirmation) outside an update scope — on the
     // Ask AI page or an unscoped drawer. Assume the most recent meeting summary and
     // run the same flow as the "Create tasks" button on the update itself.
-    const thinkingId = aiAppendThinking();
+    const _mtgTm = (_lastMeetingUpdate() || {}).content?.sender;
+    const thinkingId = aiAppendThinking(_mtgTm);
     _aiIsProcessing = true;
     setTimeout(() => {
       activeChat = surface;
@@ -7537,9 +7541,9 @@ function aiSend() {
       if (_isCreateTasksIntent(text)) {
         const u = _lastMeetingUpdate();
         const kind = (u && _updateActionItems(u).length > 1) ? 'create_tasks' : 'create_task';
-        aiAppendMessage('ai', _actionFlowReply(kind, u));
+        aiAppendMessage('ai', _actionFlowReply(kind, u), { teammate: _mtgTm });
       } else {
-        aiAppendMessage('ai', _tasksCreatedReply(_pendingTaskCreation));
+        aiAppendMessage('ai', _tasksCreatedReply(_pendingTaskCreation), { teammate: _mtgTm });
         _pendingTaskCreation = null;
       }
       _aiIsProcessing = false;
@@ -7549,12 +7553,13 @@ function aiSend() {
     // "When's the next meeting" outside an update scope — answer from the most
     // recent meeting summary, same as asking from that update directly.
     _pendingTaskCreation = null;
-    const thinkingId = aiAppendThinking();
+    const _mtgTm = (_lastMeetingUpdate() || {}).content?.sender;
+    const thinkingId = aiAppendThinking(_mtgTm);
     _aiIsProcessing = true;
     setTimeout(() => {
       activeChat = surface;
       aiRemoveThinking(thinkingId);
-      aiAppendMessage('ai', _meetingReply('next meeting', _lastMeetingUpdate()));
+      aiAppendMessage('ai', _meetingReply('next meeting', _lastMeetingUpdate()), { teammate: _mtgTm });
       _aiIsProcessing = false;
     }, 1200);
 
