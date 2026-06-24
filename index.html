@@ -5587,7 +5587,7 @@ function renderAskAiHist(activeId) {
     return `<div class="askai-hist-label">${label}</div>` +
       items.map(item => `
         <div class="askai-hist-item ${item.id === activeId ? 'active' : ''}" onclick="loadChatHistory('${item.id}','page')">
-          <div class="chat-hist-avatars" style="transform:scale(0.82);transform-origin:left center;">${_histAvatarStack()}</div>
+          <div class="chat-hist-avatars" style="transform:scale(0.82);transform-origin:left center;">${_histAvatarStack(item)}</div>
           <div class="askai-hist-name">${item.name}</div>
         </div>`).join('');
   }
@@ -5891,7 +5891,7 @@ function renderDetail(u) {
         <div class="detail-askai">
           <button class="detail-askai-btn" onclick="askAiAboutUpdate()">
             <svg viewBox="0 0 24 24" fill="url(#aiGrad2)"><path d="M12 2l2.09 6.41L20.5 10l-6.41 2.09L12 18.5l-2.09-6.41L3.5 10l6.41-2.09L12 2z"/></svg>
-            Ask AI about this update
+            Ask ${c.sender} about this update
           </button>
         </div>
       </div>
@@ -8098,8 +8098,23 @@ const chatHistoryData = [
   },
 ];
 
-/* Build avatar HTML for a history item */
-function _histAvatarStack() {
+/* The teammate a history item was triggered from, if any.
+   Explicit `teammate` wins; otherwise derive it from the job type that
+   produced the conversation (e.g. a Scout meeting/catch-up, a Flo health check). */
+function _histTeammate(item) {
+  if (!item) return null;
+  if (item.teammate) return item.teammate;
+  const jt = item.jobType || (item.messages || []).find(m => m.jobType)?.jobType;
+  if (jt) { const info = _updateJobInfo({ type: jt }); return info ? info.tm : null; }
+  return null;
+}
+
+/* Build avatar HTML for a history item — the triggering teammate's avatar
+   when the conversation came from their update, else the Teamwork AI spark. */
+function _histAvatarStack(item) {
+  const tmName = _histTeammate(item);
+  const t = tmName && teammates.find(x => x.name === tmName);
+  if (t) return `<div class="chat-hist-avatar"><img src="${t.avatarMd}" alt="${t.name}"></div>`;
   return `<div class="chat-hist-avatar ai-spark">✦</div>`;
 }
 
@@ -8114,7 +8129,7 @@ function renderChatHistoryList() {
     return `<div class="chat-hist-section-label">${label}</div>` +
       items.map(item => `
         <div class="chat-hist-item" onclick="loadChatHistory('${item.id}','drawer')">
-          <div class="chat-hist-avatars">${_histAvatarStack()}</div>
+          <div class="chat-hist-avatars">${_histAvatarStack(item)}</div>
           <div class="chat-hist-info">
             <div class="chat-hist-name">${item.name}</div>
             <div class="chat-hist-preview">${item.preview}</div>
